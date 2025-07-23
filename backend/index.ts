@@ -1,14 +1,23 @@
-import express from "express";
+// server.ts
+import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-const app = express();
+dotenv.config();
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
+const app: Express = express();
+const PORT = process.env.PORT || 8080;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Root health‐check
+app.get('/', (_req: Request, res: Response) => {
+  res.send('StudyPod API is running - Convert your study materials to podcasts!');
 });
 
-app.get("/about", (req, res) => {
-    res.send("About route");
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-app.listen(3000, () => console.log("Server listening at port 3000"));
-
