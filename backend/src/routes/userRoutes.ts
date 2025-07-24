@@ -1,18 +1,10 @@
-import express, { Request, Response, Router } from 'express';
+import express from 'express';
+import * as userController from '../controllers/userController';
 
+const router = express.Router();
 
-const router: Router = express.Router();
-
-router.get('/', async (req: Request, res: Response): Promise<void> => {
-  res.status(500).json({ error: 'Failed to retrieve users' });
-});
-
-router.post('/', async (req: Request, res: Response): Promise<void> => {
-  res.status(500).json({ error: 'Failed to create user' });
-});
-
-router.post('/', async (req: Request, res: Response): Promise<void> => {
-  res.status(500).json({ error: 'Failed to create user' });
-});
+router.get('/users', userController.getAllUsers);
+router.post('/users', userController.createUser);
+router.get('/users/:id', userController.getUserById);
 
 export default router;
