@@ -1,22 +1,23 @@
 import { Request, Response } from 'express';
+import * as userService from '../services/userService';
 
-// controllers/userController.js
-export const getAllUsers = (req : Request, res : Response) => {
-  // Fetch users from DB, send results
-};
-export const createUser = (req : Request, res : Response) => {
-  // Validate, create user, send response
+export const getAllUsers = async (req: Request, res: Response) => {
+  await userService.getAllUsers(req, res);
 };
 
-export const getUserById = (req : Request, res : Response) => {
-  // Fetch user by ID, handle errors
+export const createUser = async (req: Request, res: Response) => {
+  await userService.createUser(req, res);
 };
 
-export const updateUser = (req : Request, res : Response) => {
-  // Validate, update user, send response
+export const getUserById = async (req: Request, res: Response) => {
+  await userService.getUserById(req, res);
 };
 
-export const deleteUser = (req : Request, res : Response) => {
-  // Validate, delete user, send response
+export const updateUser = async (req: Request, res: Response) => {
+  await userService.updateUser(req, res);
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  await userService.deleteUser(req, res);
 };
 
