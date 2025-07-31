@@ -21,8 +21,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/v1', userRoutes);
-app.use('/api/v1', workoutRoutes);
+app.use('/api', userRoutes);
+app.use('/api', workoutRoutes);
 
 // Root health‐check
 app.get('/', (_req: Request, res: Response) => {
