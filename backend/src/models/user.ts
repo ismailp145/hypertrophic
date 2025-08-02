@@ -1,6 +1,6 @@
 import { usersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { db } from '../config/database';
 
 // Export the users table from schema
 export const users = usersTable;
@@ -10,9 +10,6 @@ export type NewUser = typeof usersTable.$inferInsert;
 
 // Type for a complete user record
 export type User = typeof usersTable.$inferSelect;
-
-// Database instance
-const db = drizzle(process.env.DATABASE_URL!);
 
 // User model functions
 export const UserModel = {
