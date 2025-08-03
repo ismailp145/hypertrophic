@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import userRoutes from './src/routes/userRoutes';
 import workoutRoutes from './src/routes/workoutRoutes';
+import authRoutes from './src/routes/authRoutes';
 import verifyToken from './src/middleware/auth';
 import { errorHandler } from './src/middleware/errorHandler';
 import rateLimiter from './src/middleware/rateLimiter';
@@ -41,6 +42,9 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Auth routes (public for login/register, protected for profile)
+app.use('/api/auth', authRoutes);
+
 // Protected routes (auth required)
 app.use('/api/users', verifyToken, userRoutes);
 app.use('/api/workouts', verifyToken, workoutRoutes);
@@ -48,7 +52,7 @@ app.use('/api/workouts', verifyToken, workoutRoutes);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// 404 handler
+// 404 handler - catch all unmatched routes
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });

@@ -3,13 +3,15 @@ import { UserModel } from '../models/user';
 export interface CreateUserData {
   name: string;
   email: string;
-  age: number;
+  age?: number;
+  password?: string;
 }
 
 export interface UpdateUserData {
   name?: string;
   email?: string;
   age?: number;
+  password?: string;
 }
 
 export const getAllUsers = async () => {
@@ -18,7 +20,7 @@ export const getAllUsers = async () => {
 };
 
 export const createUser = async (userData: CreateUserData) => {
-  const { name, email, age } = userData;
+  const { name, email, age, password } = userData;
   
   // Check if user already exists
   const existingUser = await UserModel.findByEmail(email);
@@ -26,7 +28,12 @@ export const createUser = async (userData: CreateUserData) => {
     throw new Error('User with this email already exists');
   }
 
-  const user = await UserModel.create({ name, email, age });
+  const user = await UserModel.create({ 
+    name, 
+    email, 
+    age: age || 0, // Default to 0 if age is not provided
+    password: password || '' // Default to empty string if password is not provided
+  });
   return user;
 };
 
@@ -35,6 +42,11 @@ export const getUserById = async (id: number) => {
   if (!user) {
     throw new Error('User not found');
   }
+  return user;
+};
+
+export const getUserByEmail = async (email: string) => {
+  const user = await UserModel.findByEmail(email);
   return user;
 };
 
