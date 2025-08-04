@@ -1,5 +1,5 @@
 // app/LogIn.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
@@ -21,32 +21,33 @@ export default function LogIn() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
-  // const { logIn } = useContext(AuthContext);
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     setErrorMessage('');
+    setSuccessMessage('');
+    
     if (!email || !password) {
       setErrorMessage('Please enter both email and password');
       return;
     }
+    
     setLoading(true);
     try {
-      // const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // const user = userCredential.user;
-      // ensure backend user exists
-      try {
-        // await axios.get(`https://studypod-nvau.onrender.com/user/${user.uid}`);
-      } catch {
-        console.warn('User not found in backend');
+      const result = await login(email, password);
+      
+      if (result.success) {
+        setSuccessMessage(result.message);
+        // Navigate to main app after successful login
+        setTimeout(() => {
+          router.replace('/(tabs)/index' as any);
+        }, 1000);
+      } else {
+        setErrorMessage(result.message);
       }
-      // store UID in context & navigate
-      // logIn(user.uid);
     } catch (error: any) {
-      let msg = 'Failed to log in. Please try again.';
-      if (error.code === 'auth/invalid-credential') msg = 'Invalid email or password';
-      if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try later.';
-      setErrorMessage(msg);
-      console.error(error.code, error.message);
+      setErrorMessage('Network error. Please try again.');
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }

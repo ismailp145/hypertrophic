@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUp() {
   const [name, setName] = useState('');
@@ -23,10 +23,14 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
+  const { signup } = useAuth();
 
   const handleSignUp = async () => {
     setErrorMessage('');
+    setSuccessMessage('');
+    
     if (!name || !email || !password || !confirmPassword) {
       setErrorMessage('Please fill in all fields');
       return;
@@ -38,35 +42,20 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // const user = userCredential.user;
-
-      // Set display name
-      // await updateProfile(user, { displayName: name });
-
-      // Create in backend
-      try {
-        // await axios.post('https://studypod-nvau.onrender.com/user', {
-        //   firebaseId: user.uid,
-        //   email: user.email,
-        // });
-      } catch {
-        console.warn('Backend user creation failed');
+      const result = await signup(name, email, password);
+      
+      if (result.success) {
+        setSuccessMessage(result.message);
+        // Navigate to main app after successful signup
+        setTimeout(() => {
+          router.replace('/(tabs)/index' as any);
+        }, 1000);
+      } else {
+        setErrorMessage(result.message);
       }
-
-      // Store UID & navigate
-      // logIn(user.uid);
-      // Navigate to info view after signup
-      // router.replace('/interests');
     } catch (error: any) {
-      let msg = 'Failed to create account. Please try again.';
-      if (error.code === 'auth/email-already-in-use')
-        msg = 'This email is already registered.';
-      if (error.code === 'auth/weak-password')
-        msg = 'Password is too weak.';
-      if (error.code === 'auth/invalid-email') msg = 'Please enter a valid email.';
-      setErrorMessage(msg);
-      console.error(error.code, error.message);
+      setErrorMessage('Network error. Please try again.');
+      console.error('Signup error:', error);
     } finally {
       setLoading(false);
     }
@@ -87,6 +76,13 @@ export default function SignUp() {
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle" size={20} color="#FF3B30" />
             <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
+        {successMessage ? (
+          <View style={styles.successContainer}>
+            <Ionicons name="checkmark-circle" size={20} color="#43B581" />
+            <Text style={styles.successText}>{successMessage}</Text>
           </View>
         ) : null}
 
@@ -206,4 +202,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   errorText: { color: '#FFF', marginLeft: 8, flex: 1 },
+  successContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#43B581',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  successText: { color: '#FFF', marginLeft: 8, flex: 1 },
 });
