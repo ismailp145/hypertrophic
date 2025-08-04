@@ -44,7 +44,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       name: user.name 
     },
     process.env.JWT_SECRET!,
-    { expiresIn: '30d' }
+    { expiresIn: '24h' }
   );
 
   res.status(201).json({
