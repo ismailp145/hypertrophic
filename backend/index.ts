@@ -6,47 +6,62 @@ import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import userRoutes from './src/routes/userRoutes';
 import workoutRoutes from './src/routes/workoutRoutes';
+import authRoutes from './src/routes/authRoutes';
+import verifyToken from './src/middleware/auth';
+import { errorHandler } from './src/middleware/errorHandler';
+import rateLimiter from './src/middleware/rateLimiter';
 const db = drizzle(process.env.DATABASE_URL!);
-
 
 dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(loggingMiddleware)
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(loggingMiddleware);
 
-// Routes
-app.use('/api/v1', userRoutes);
-app.use('/api/v1', workoutRoutes);
+// Rate limiting for all routes
+app.use(rateLimiter);
 
-// Root health‐check
+// Public routes (no auth required)
 app.get('/', (_req: Request, res: Response) => {
   res.send('Hypertrophic is running!');
 });
 
-app.get('', userRoutes, authorizeUsersAccess, (req: Request, res: Response) => {
-  res.send('Users');
-})
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Auth routes (public for login/register, protected for profile)
+app.use('/api/auth', authRoutes);
+
+// Protected routes (auth required)
+app.use('/api/users', verifyToken, userRoutes);
+app.use('/api/workouts', verifyToken, workoutRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+// 404 handler - catch all unmatched routes
+app.use('*', (req: Request, res: Response) => {
+  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+});
 
 function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
-  console.log(`${new Date().toISOString()}: ${req.originalUrl}`)
+  console.log(`${new Date().toISOString()}: ${req.method} ${req.originalUrl}`);
   next(); 
-  return;
 }
 
-function authorizeUsersAccess(req: Request, res: Response, next: NextFunction) {
- if (req.query.admin === "true") {
-    next()
-  } else {
-    res.send("ERROR: You must be an admin")
-  }
-  next();
-}
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
