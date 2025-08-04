@@ -19,9 +19,19 @@ const PORT = process.env.PORT || 8080;
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',           // Web development
+    'http://localhost:8081',           // Expo web
+    'http://localhost:19006',          // Expo dev server
+    'exp://localhost:19000',           // Expo Go
+    'exp://10.0.0.74:19000',          // Expo Go with IP
+    'http://10.0.0.74:8081',          // Expo web with IP
+    process.env.FRONTEND_URL,          // Custom frontend URL from env
+  ].filter((url): url is string => Boolean(url)), // Remove undefined values
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 };
 
 // Middleware

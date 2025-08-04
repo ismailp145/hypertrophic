@@ -1,15 +1,23 @@
 // API Configuration
 export const API_CONFIG = {
-  // Change this to match your backend URL
+  // For development - change this to your computer's IP address if testing on device
   BASE_URL: 'http://localhost:8080/api',
   
-  // For development with Expo Go, you might need to use your computer's IP address
-  // BASE_URL: 'http://192.168.1.100:8080/api',
+  // For testing on physical device, uncomment and replace with your computer's IP:
+  // BASE_URL: 'http://10.0.0.74:8080/api',
   
   // For production, use your deployed backend URL
   // BASE_URL: 'https://your-backend-url.com/api',
   
   TIMEOUT: 10000, // 10 seconds
+};
+
+// Helper function to get your computer's IP address
+export const getLocalIP = () => {
+  // You can find your IP by running: ifconfig | grep "inet " | grep -v 127.0.0.1
+  // On macOS/Linux: ifconfig | grep "inet " | grep -v 127.0.0.1
+  // On Windows: ipconfig | findstr "IPv4"
+  return '10.0.0.74'; // Your actual IP address
 };
 
 export const ENDPOINTS = {
