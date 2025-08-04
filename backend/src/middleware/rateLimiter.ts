@@ -1,36 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
+import rateLimit from 'express-rate-limit';
 
-// Simple in-memory rate limiter
-const requestCounts = new Map<string, { count: number; resetTime: number }>();
-
-const rateLimiter = (maxRequests: number = 100, windowMs: number = 15 * 60 * 1000) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-    const now = Date.now();
-    
-    const clientData = requestCounts.get(clientIP);
-    
-    if (!clientData || now > clientData.resetTime) {
-      // First request or window expired
-      requestCounts.set(clientIP, {
-        count: 1,
-        resetTime: now + windowMs
-      });
-      return next();
-    }
-    
-    if (clientData.count >= maxRequests) {
-      return res.status(429).json({
-        success: false,
-        message: 'Too many requests. Please try again later.',
-        retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
-      });
-    }
-    
-    // Increment count
-    clientData.count++;
-    next();
-  };
-};
+const rateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests. Please try again later.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 export default rateLimiter; 

@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(loggingMiddleware);
 
 // Rate limiting for all routes
-app.use(rateLimiter(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+app.use(rateLimiter);
 
 // Public routes (no auth required)
 app.get('/', (_req: Request, res: Response) => {
