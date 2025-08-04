@@ -31,7 +31,7 @@ export const createUser = async (userData: CreateUserData) => {
   const user = await UserModel.create({ 
     name, 
     email, 
-    age: age || 0, // Default to 0 if age is not provided
+    age: age || null, // Allow null for optional age
     password: password || '' // Default to empty string if password is not provided
   });
   return user;

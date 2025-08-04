@@ -25,7 +25,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  // Hash password
+  // Hash password with bcrypt, update to 12 in prod
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -44,7 +44,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       name: user.name 
     },
     process.env.JWT_SECRET!,
-    { expiresIn: '24h' }
+    { expiresIn: '30d' }
   );
 
   res.status(201).json({
