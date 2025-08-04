@@ -19,6 +19,7 @@ export const getAllUsers = async () => {
   return users;
 };
 
+//only called from authController.ts
 export const createUser = async (userData: CreateUserData) => {
   const { name, email, age, password } = userData;
   
