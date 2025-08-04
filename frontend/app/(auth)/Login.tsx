@@ -40,7 +40,7 @@ export default function LogIn() {
         setSuccessMessage(result.message);
         // Navigate to main app after successful login
         setTimeout(() => {
-          router.replace('/(tabs)/index' as any);
+          router.replace('/(tabs)');
         }, 1000);
       } else {
         setErrorMessage(result.message);
