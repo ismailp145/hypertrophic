@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { API_CONFIG } from '../config/api';
 
+//TODO: JWT is not working, need to fix it
 interface User {
   id: string;
   name: string;
