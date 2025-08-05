@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
   // For development - change this to your computer's IP address if testing on device
-  BASE_URL: 'http://localhost:8080/api',
+  // BASE_URL: 'http://localhost:8080/api',
   
-  // For testing on physical device, uncomment and replace with your computer's IP:
-  // BASE_URL: 'http://10.0.0.74:8080/api',
+  // For testing on physical device, use your computer's IP:
+  BASE_URL: 'http://10.0.0.74:8080/api',
   
   // For production, use your deployed backend URL
   // BASE_URL: 'https://your-backend-url.com/api',

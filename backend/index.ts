@@ -26,6 +26,7 @@ const corsOptions = {
     'exp://localhost:19000',           // Expo Go
     'exp://10.0.0.74:19000',          // Expo Go with IP
     'http://10.0.0.74:8081',          // Expo web with IP
+    'exp://10.0.0.74:8081',           // Expo go that worked
     process.env.FRONTEND_URL,          // Custom frontend URL from env
   ].filter((url): url is string => Boolean(url)), // Remove undefined values
   credentials: true,

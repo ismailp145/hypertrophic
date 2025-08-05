@@ -114,15 +114,53 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
 // Get current user profile
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
-  // The user data is already attached by the auth middleware
-  const user = (req as any).user;
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access denied. No token provided.'
+    });
+  }
 
-  res.json({
-    success: true,
-    user: {
-      id: user.userId,
-      name: user.name,
-      email: user.email
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not set');
+  }
+
+  try {
+    // Verify the JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+    
+    // Convert userId to number and get user data from database to ensure it's still valid
+    const userId = parseInt(decoded.userId, 10);
+    if (isNaN(userId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid user ID in token.'
+      });
     }
-  });
+    
+    const user = await userService.getUserById(userId);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token.'
+    });
+  }
 }); 

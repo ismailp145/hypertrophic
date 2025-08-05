@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { API_CONFIG } from '../config/api';
+import { API_CONFIG, ENDPOINTS } from '../config/api';
 
 //TODO: JWT is not working, need to fix it
 interface User {
@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(storedToken);
         
         // Verify token by calling profile endpoint
-        const response = await axios.get('/auth/profile');
+        const response = await axios.get(ENDPOINTS.AUTH.PROFILE);
         if (response.data.success) {
           setUser(response.data.user);
         } else {
@@ -121,13 +121,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await axios.post('/auth/login', {
+      console.log('Attempting login to:', `${axios.defaults.baseURL}${ENDPOINTS.AUTH.LOGIN}`);
+      console.log('Login payload:', { email, password: '***' });
+      
+      const response = await axios.post(ENDPOINTS.AUTH.LOGIN, {
         email,
         password,
       });
 
+      console.log('Login response:', response.data);
+
       if (response.data.success) {
         const { token: newToken, user: userData } = response.data;
+        console.log('Login successful', newToken, userData);
         await storeToken(newToken);
         setUser(userData);
         return { success: true, message: 'Login successful' };
@@ -136,6 +142,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error: any) {
       console.error('Login error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      
       if (error.response?.data?.message) {
         return { success: false, message: error.response.data.message };
       }
@@ -145,11 +155,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (name: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await axios.post('/auth/register', {
+      console.log('Attempting signup to:', `${axios.defaults.baseURL}${ENDPOINTS.AUTH.REGISTER}`);
+      console.log('Signup payload:', { name, email, password: '***' });
+      
+      const response = await axios.post(ENDPOINTS.AUTH.REGISTER, {
         name,
         email,
         password,
       });
+
+      console.log('Signup response:', response.data);
 
       if (response.data.success) {
         const { token: newToken, user: userData } = response.data;
@@ -161,6 +176,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error: any) {
       console.error('Signup error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      
       if (error.response?.data?.message) {
         return { success: false, message: error.response.data.message };
       }
