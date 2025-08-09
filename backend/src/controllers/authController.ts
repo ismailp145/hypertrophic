@@ -8,13 +8,7 @@ import * as userService from '../services/userService';
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
-  // Validate required fields
-  if (!name || !email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Name, email, and password are required'
-    });
-  }
+  // Zod validation is handled by middleware, so we can trust the data here
 
   // Check if user already exists
   const existingUser = await userService.getUserByEmail(email);
@@ -63,13 +57,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Validate required fields
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email and password are required'
-    });
-  }
+  // Zod validation is handled by middleware, so we can trust the data here
 
   // Find user by email
   const user = await userService.getUserByEmail(email);

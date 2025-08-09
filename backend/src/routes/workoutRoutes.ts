@@ -1,5 +1,12 @@
 import express, { Response, Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validate } from '../middleware/validation';
+import { 
+  createWorkoutSchema, 
+  updateWorkoutSchema, 
+  getWorkoutByIdSchema, 
+  deleteWorkoutSchema 
+} from '../validators/workoutValidators';
 
 const router: Router = express.Router();
 
@@ -14,7 +21,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
 });
 
 // Get a single workout by ID
-router.get('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/:id', validate(getWorkoutByIdSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   res.status(200).json({ 
     success: true,
     message: `Get workout ${req.params.id} (placeholder)`, 
@@ -23,7 +30,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response): Promise<voi
 });
 
 // Create a new workout
-router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', validate(createWorkoutSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   res.status(201).json({ 
     success: true,
     message: 'Create workout (placeholder)', 
@@ -32,7 +39,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
 });
 
 // Update a workout by ID
-router.put('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/:id', validate(updateWorkoutSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   res.status(200).json({ 
     success: true,
     message: `Update workout ${req.params.id} (placeholder)`, 
@@ -41,7 +48,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response): Promise<voi
 });
 
 // Delete a workout by ID
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', validate(deleteWorkoutSchema), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   res.status(200).json({ 
     success: true,
     message: `Delete workout ${req.params.id} (placeholder)`, 
