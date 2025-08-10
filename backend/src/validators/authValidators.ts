@@ -42,7 +42,7 @@ export const updateProfileSchema = z.object({
     email: z.preprocess(
       (val) => typeof val === 'string' ? val.trim().toLowerCase() : val,
       z.email('Invalid email format')
-    ),
+    ).optional(),
   }).refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update'
   })
