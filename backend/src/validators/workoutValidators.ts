@@ -16,10 +16,9 @@ export const createWorkoutSchema = z.object({
       .max(500, 'Description must be less than 500 characters')
       .trim()
       .optional(),
-    date: z.string()
-      .datetime('Invalid date format')
-      .optional()
-      .or(z.date().optional())
+    date: z.iso.datetime('Invalid ISO datetime format')
+    .transform((dateString) => new Date(dateString))
+    .optional()
   })
 });
 
@@ -43,10 +42,9 @@ export const updateWorkoutSchema = z.object({
       .max(500, 'Description must be less than 500 characters')
       .trim()
       .optional(),
-    date: z.string()
-      .datetime('Invalid date format')
-      .optional()
-      .or(z.date().optional())
+    date: z.iso.datetime('Invalid ISO datetime format')
+    .transform((dateString) => new Date(dateString))
+    .optional()
   }).refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update'
   })
