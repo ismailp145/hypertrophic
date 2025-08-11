@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Home() {
@@ -10,11 +10,6 @@ export default function Home() {
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
                 <View style={styles.logoContainer}>
-                    {/* <Image 
-                        source={require('@/assets/images/spod.png')} // Adjust the path to your logo image
-                        style={styles.logo}
-                        resizeMode="contain"
-                    /> */}
                     <Text style={styles.title}>Hypertrophic</Text>
                     <Text style={styles.subtitle}>Train together, grow together</Text>
                 </View>
