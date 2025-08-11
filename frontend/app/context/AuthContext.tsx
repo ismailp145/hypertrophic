@@ -3,7 +3,6 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 
-//TODO: JWT is not working, need to fix it
 interface User {
   id: string;
   name: string;
@@ -99,11 +98,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const storedToken = await getStoredToken();
       if (storedToken) {
-        setToken(storedToken);
-        
-        // Verify token by calling profile endpoint
-        const response = await axios.get(ENDPOINTS.AUTH.PROFILE);
+        // Verify token by calling profile endpoint with explicit Authorization header
+        // This avoids the race condition with the axios interceptor
+        const response = await axios.get(ENDPOINTS.AUTH.PROFILE, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`
+          }
+        });
         if (response.data.success) {
+          setToken(storedToken);
           setUser(response.data.user);
         } else {
           // Token is invalid, remove it
