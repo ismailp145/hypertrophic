@@ -11,10 +11,13 @@
     "dev": "tsx watch index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "token": "node scripts/get-token.js"
+    "token": "node scripts/get-token.js",
+    "key": "node scripts/jwtKeyGenerator.js"
   },
   "dependencies": {
     "aws-sdk": "^2.1692.0",
@@ -26,7 +29,8 @@
     "express-rate-limit": "^8.0.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
