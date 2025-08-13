@@ -1,5 +1,5 @@
 import { integer, pgTable, varchar, timestamp, text, decimal } from "drizzle-orm/pg-core";
-import { or, relations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -56,7 +56,6 @@ export const exercisesTable = pgTable("exercises", {
   category: varchar({ length: 100 }), // e.g., "Push", "Pull", "Legs", "Core", "Upper Body", "Lower Body"
   muscleGroup: varchar({ length: 50 }), // e.g., "Chest", "Back", "Legs",
   equipment: varchar({ length: 255 }), // e.g., "Barbell", "Dumbbell", "Machine", "Bodyweight", "Other"
-  order: integer().notNull(), // To maintain exercise order within the session
   notes: text(),
   createdAt: timestamp().notNull().defaultNow(),
 });
@@ -77,7 +76,6 @@ export const workoutExercisesTable = pgTable("workout_exercises", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   workoutSessionId: integer().notNull().references(() => workoutSessionsTable.id, { onDelete: "cascade" }),
   exerciseId: integer().notNull().references(() => exercisesTable.id, { onDelete: "restrict" }),
-  order: integer().notNull(),
   restTimeSeconds: integer(),
   notes: text(),
   createdAt: timestamp().notNull().defaultNow(),
