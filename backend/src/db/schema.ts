@@ -75,11 +75,12 @@ export const exercisesTable = pgTable("exercises", {
 
 export const workoutExercisesTable = pgTable("workout_exercises", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  workoutSessionId: integer().notNull().references(() => workoutSessionsTable.id),
-  exerciseId: integer().notNull().references(() => exercisesTable.id),
+  workoutSessionId: integer().notNull().references(() => workoutSessionsTable.id, { onDelete: "cascade" }),
+  exerciseId: integer().notNull().references(() => exercisesTable.id, { onDelete: "restrict" }),
   order: integer().notNull(),
   restTimeSeconds: integer(),
   notes: text(),
+  createdAt: timestamp().notNull().defaultNow(),
 });
 
 // Sets for each exercise
@@ -98,8 +99,7 @@ export const workoutExercisesTable = pgTable("workout_exercises", {
 // );
 export const exerciseSetsTable = pgTable("exercise_sets", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  workoutExerciseId: integer().references(() => workoutExercisesTable.id),
-  exerciseId: integer().notNull().references(() => exercisesTable.id),
+  workoutExerciseId: integer().notNull().references(() => workoutExercisesTable.id),
   setNumber: integer().notNull(), // 1, 2, 3, etc.
   reps: integer().notNull(),
   weight: decimal({ precision: 6, scale: 2 }).notNull(), // e.g., 135.50 lbs
