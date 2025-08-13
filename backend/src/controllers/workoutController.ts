@@ -1,6 +1,14 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import * as workoutService from '../services/workoutService';
+import { 
+  CreateWorkoutSessionData,
+  UpdateWorkoutSessionData,
+  AddExerciseToWorkoutData,
+  UpdateWorkoutExerciseData,
+  AddSetToExerciseData,
+  UpdateExerciseSetData
+} from '../types/Workout';
 
 export class WorkoutController {
   
@@ -11,11 +19,13 @@ export class WorkoutController {
       const { name, notes } = req.body;
       const userId = req.user!.id;
 
-      const newSession = await workoutService.createWorkoutSession({
+      const workoutData: CreateWorkoutSessionData = {
         userId,
         name,
         notes
-      });
+      };
+
+      const newSession = await workoutService.createWorkoutSession(workoutData);
 
       res.status(201).json({
         success: true,
@@ -94,7 +104,7 @@ export class WorkoutController {
     try {
       const userId = req.user!.id;
       const sessionId = parseInt(req.params.id);
-      const updateData = req.body;
+      const updateData: UpdateWorkoutSessionData = req.body;
 
       const updatedSession = await workoutService.updateWorkoutSession(userId, sessionId, updateData);
 
@@ -183,13 +193,15 @@ export class WorkoutController {
       const workoutSessionId = parseInt(req.params.workoutSessionId);
       const { exerciseId, order, restTimeSeconds, notes } = req.body;
 
-      const newWorkoutExercise = await workoutService.addExerciseToWorkout(userId, {
+      const exerciseData: AddExerciseToWorkoutData = {
         workoutSessionId,
         exerciseId,
         order,
         restTimeSeconds,
         notes
-      });
+      };
+
+      const newWorkoutExercise = await workoutService.addExerciseToWorkout(userId, exerciseData);
 
       res.status(201).json({
         success: true,
@@ -216,7 +228,7 @@ export class WorkoutController {
     try {
       const userId = req.user!.id;
       const workoutExerciseId = parseInt(req.params.id);
-      const updateData = req.body;
+      const updateData: UpdateWorkoutExerciseData = req.body;
 
       const updatedWorkoutExercise = await workoutService.updateWorkoutExercise(userId, workoutExerciseId, updateData);
 
@@ -276,14 +288,16 @@ export class WorkoutController {
       const workoutExerciseId = parseInt(req.params.workoutExerciseId);
       const { setNumber, reps, weight, restTimeSeconds, notes } = req.body;
 
-      const newSet = await workoutService.addSetToExercise(userId, workoutExerciseId, {
+      const setData: AddSetToExerciseData = {
         workoutExerciseId,
         setNumber,
         reps,
         weight,
         restTimeSeconds,
         notes
-      });
+      };
+
+      const newSet = await workoutService.addSetToExercise(userId, workoutExerciseId, setData);
 
       res.status(201).json({
         success: true,
@@ -310,7 +324,7 @@ export class WorkoutController {
     try {
       const userId = req.user!.id;
       const setId = parseInt(req.params.id);
-      const updateData = req.body;
+      const updateData: UpdateExerciseSetData = req.body;
 
       const updatedSet = await workoutService.updateExerciseSet(userId, setId, updateData);
 

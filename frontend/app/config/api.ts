@@ -31,10 +31,13 @@ export const ENDPOINTS = {
     UPDATE: '/users/update',
   },
   WORKOUTS: {
-    LIST: '/workouts',
-    CREATE: '/workouts',
-    DETAIL: (id: string) => `/workouts/${id}`,
-    UPDATE: (id: string) => `/workouts/${id}`,
-    DELETE: (id: string) => `/workouts/${id}`,
+    SESSIONS: '/workouts/sessions',
+    CREATE_SESSION: '/workouts/sessions',
+    SESSION_DETAIL: (id: string) => `/workouts/sessions/${id}`,
+    UPDATE_SESSION: (id: string) => `/workouts/sessions/${id}`,
+    DELETE_SESSION: (id: string) => `/workouts/sessions/${id}`,
+    COMPLETE_SESSION: (id: string) => `/workouts/sessions/${id}/complete`,
+    EXERCISES: '/workouts/exercises',
+    EXERCISE_DETAIL: (id: string) => `/workouts/exercises/${id}`,
   },
 }; 

@@ -8,77 +8,15 @@ import {
 import { eq, and, desc, asc, isNull, isNotNull } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 
-export interface CreateWorkoutSessionData {
-  userId: number;
-  name: string;
-  notes?: string;
-}
-
-export interface UpdateWorkoutSessionData {
-  name?: string;
-  notes?: string;
-}
-
-export interface AddExerciseToWorkoutData {
-  workoutSessionId: number;
-  exerciseId: number;
-  order: number;
-  restTimeSeconds?: number;
-  notes?: string;
-}
-
-export interface UpdateWorkoutExerciseData {
-  order?: number;
-  restTimeSeconds?: number;
-  notes?: string;
-}
-
-export interface AddSetToExerciseData {
-  workoutExerciseId: number;
-  setNumber: number;
-  reps: number;
-  weight: string;
-  restTimeSeconds?: number;
-  notes?: string;
-}
-
-export interface UpdateExerciseSetData {
-  setNumber?: number;
-  reps?: number;
-  weight?: string;
-  restTimeSeconds?: number;
-  notes?: string;
-}
-
-export interface WorkoutSessionWithExercises {
-  id: number;
-  userId: number;
-  name: string;
-  startedAt: Date;
-  completedAt: Date | null;
-  notes: string | null;
-  createdAt: Date;
-  exercises: Array<{
-    id: number;
-    workoutSessionId: number;
-    exerciseId: number;
-    order: number;
-    restTimeSeconds: number | null;
-    notes: string | null;
-    createdAt: Date;
-    sets: Array<{
-      id: number;
-      workoutExerciseId: number;
-      setNumber: number;
-      reps: number;
-      weight: string;
-      restTimeSeconds: number | null;
-      completedAt: Date | null;
-      notes: string | null;
-      createdAt: Date;
-    }>;
-  }>;
-}
+import {
+  CreateWorkoutSessionData,
+  UpdateWorkoutSessionData,
+  AddExerciseToWorkoutData,
+  UpdateWorkoutExerciseData,
+  AddSetToExerciseData,
+  UpdateExerciseSetData,
+  WorkoutSessionWithExercises
+} from '../types/Workout';
 
 // ===== WORKOUT SESSIONS =====
 
