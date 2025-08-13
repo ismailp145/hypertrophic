@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,11 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFieldError = exports.validate = void 0;
-const zod_1 = require("zod");
+import { ZodError } from 'zod';
 // Generic validation middleware that accepts any Zod schema
-const validate = (schema) => {
+export const validate = (schema) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             // Validate the request against the schema
@@ -25,7 +22,7 @@ const validate = (schema) => {
             next();
         }
         catch (error) {
-            if (error instanceof zod_1.ZodError) {
+            if (error instanceof ZodError) {
                 // Format Zod validation errors for better user experience
                 const errors = error.errors.map((err) => ({
                     field: err.path.join('.'),
@@ -44,10 +41,8 @@ const validate = (schema) => {
         }
     });
 };
-exports.validate = validate;
 // Helper function to extract validation errors for specific fields
-const getFieldError = (errors, field) => {
+export const getFieldError = (errors, field) => {
     const error = errors.find(err => err.field === field);
     return error === null || error === void 0 ? void 0 : error.message;
 };
-exports.getFieldError = getFieldError;

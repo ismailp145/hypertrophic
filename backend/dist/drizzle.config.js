@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
-const drizzle_kit_1 = require("drizzle-kit");
-exports.default = (0, drizzle_kit_1.defineConfig)({
+import 'dotenv/config';
+import { defineConfig } from 'drizzle-kit';
+export default defineConfig({
     out: './drizzle',
     schema: './src/db/schema.ts',
     dialect: 'postgresql',

@@ -1,23 +1,18 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
 // server.ts
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-require("dotenv/config");
-const node_postgres_1 = require("drizzle-orm/node-postgres");
-const userRoutes_1 = __importDefault(require("./src/routes/userRoutes"));
-const workoutRoutes_1 = __importDefault(require("./src/routes/workoutRoutes"));
-const authRoutes_1 = __importDefault(require("./src/routes/authRoutes"));
-const auth_1 = __importDefault(require("./src/middleware/auth"));
-const errorHandler_1 = require("./src/middleware/errorHandler");
-const rateLimiter_1 = __importDefault(require("./src/middleware/rateLimiter"));
-const db = (0, node_postgres_1.drizzle)(process.env.DATABASE_URL);
-dotenv_1.default.config();
-const app = (0, express_1.default)();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import userRoutes from './src/routes/userRoutes';
+import workoutRoutes from './src/routes/workoutRoutes';
+import authRoutes from './src/routes/authRoutes';
+import verifyToken from './src/middleware/auth';
+import { errorHandler } from './src/middleware/errorHandler';
+import rateLimiter from './src/middleware/rateLimiter';
+const db = drizzle(process.env.DATABASE_URL);
+dotenv.config();
+const app = express();
 const PORT = process.env.PORT || 8080;
 // CORS configuration
 const corsOptions = {
@@ -37,12 +32,12 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 };
 // Middleware
-app.use((0, cors_1.default)(corsOptions));
-app.use(express_1.default.json({ limit: '10mb' }));
-app.use(express_1.default.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(loggingMiddleware);
 // Rate limiting for all routes
-app.use(rateLimiter_1.default);
+app.use(rateLimiter);
 // Public routes (no auth required)
 app.get('/', (_req, res) => {
     res.send('Hypertrophic is running!');
@@ -51,12 +46,12 @@ app.get('/health', (_req, res) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 // Auth routes (public for login/register, protected for profile)
-app.use('/api/auth', authRoutes_1.default);
+app.use('/api/auth', authRoutes);
 // Protected routes (auth required)
-app.use('/api/users', auth_1.default, userRoutes_1.default);
-app.use('/api/workouts', auth_1.default, workoutRoutes_1.default);
+app.use('/api/users', verifyToken, userRoutes);
+app.use('/api/workouts', verifyToken, workoutRoutes);
 // Error handling middleware (must be last)
-app.use(errorHandler_1.errorHandler);
+app.use(errorHandler);
 // 404 handler - catch all unmatched routes
 app.use('*', (req, res) => {
     res.status(404).json({ message: `Route ${req.originalUrl} not found` });

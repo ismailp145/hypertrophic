@@ -1,14 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { db } from '../config/database';
-import { 
-  workoutSessionsTable, 
-  exercisesTable, 
-  workoutExercisesTable, 
-  exerciseSetsTable 
-} from '../db/schema';
-import { eq, and, desc, asc, isNull, isNotNull } from 'drizzle-orm';
-import { logger } from '../utils/logger';
+import * as workoutService from '../services/workoutService';
 
 export class WorkoutController {
   
@@ -19,16 +11,11 @@ export class WorkoutController {
       const { name, notes } = req.body;
       const userId = req.user!.id;
 
-      const [newSession] = await db.insert(workoutSessionsTable)
-        .values({
-          userId,
-          name,
-          notes,
-          startedAt: new Date(),
-        })
-        .returning();
-
-      logger.info(`User ${userId} created workout session: ${newSession.id}`);
+      const newSession = await workoutService.createWorkoutSession({
+        userId,
+        name,
+        notes
+      });
 
       res.status(201).json({
         success: true,
@@ -36,7 +23,6 @@ export class WorkoutController {
         data: newSession
       });
     } catch (error) {
-      logger.error('Error creating workout session:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create workout session',
@@ -50,24 +36,12 @@ export class WorkoutController {
       const userId = req.user!.id;
       const { limit = 10, offset = 0, completed } = req.query;
 
-      let whereClause = eq(workoutSessionsTable.userId, userId);
-      
-      if (completed !== undefined) {
-        if (completed) {
-          whereClause = and(whereClause, isNull(workoutSessionsTable.completedAt))!;
-        } else {
-          whereClause = and(whereClause, isNotNull(workoutSessionsTable.completedAt))!;
-        }
-      }
-
-      const sessions = await db.select()
-        .from(workoutSessionsTable)
-        .where(whereClause)
-        .orderBy(desc(workoutSessionsTable.startedAt))
-        .limit(Number(limit))
-        .offset(Number(offset));
-
-      logger.info(`User ${userId} retrieved ${sessions.length} workout sessions`);
+      const sessions = await workoutService.getWorkoutSessions(
+        userId, 
+        Number(limit), 
+        Number(offset), 
+        completed !== undefined ? Boolean(completed) : undefined
+      );
 
       res.status(200).json({
         success: true,
@@ -80,7 +54,6 @@ export class WorkoutController {
         }
       });
     } catch (error) {
-      logger.error('Error retrieving workout sessions:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve workout sessions',
@@ -94,47 +67,7 @@ export class WorkoutController {
       const userId = req.user!.id;
       const sessionId = parseInt(req.params.id);
 
-      const session = await db.select()
-        .from(workoutSessionsTable)
-        .where(and(
-          eq(workoutSessionsTable.id, sessionId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (session.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout session not found'
-        });
-        return;
-      }
-
-      // Get exercises for this session
-      const exercises = await db.select()
-        .from(workoutExercisesTable)
-        .where(eq(workoutExercisesTable.workoutSessionId, sessionId))
-        .orderBy(asc(workoutExercisesTable.order));
-
-      // Get sets for each exercise
-      const sessionWithExercises = {
-        ...session[0],
-        exercises: await Promise.all(
-          exercises.map(async (exercise) => {
-            const sets = await db.select()
-              .from(exerciseSetsTable)
-              .where(eq(exerciseSetsTable.workoutExerciseId, exercise.id))
-              .orderBy(asc(exerciseSetsTable.setNumber));
-
-            return {
-              ...exercise,
-              sets
-            };
-          })
-        )
-      };
-
-      logger.info(`User ${userId} retrieved workout session: ${sessionId}`);
+      const sessionWithExercises = await workoutService.getWorkoutSessionById(userId, sessionId);
 
       res.status(200).json({
         success: true,
@@ -142,7 +75,13 @@ export class WorkoutController {
         data: sessionWithExercises
       });
     } catch (error) {
-      logger.error('Error retrieving workout session:', error);
+      if (error instanceof Error && error.message === 'Workout session not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout session not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve workout session',
@@ -157,32 +96,7 @@ export class WorkoutController {
       const sessionId = parseInt(req.params.id);
       const updateData = req.body;
 
-      // Verify ownership
-      const existingSession = await db.select()
-        .from(workoutSessionsTable)
-        .where(and(
-          eq(workoutSessionsTable.id, sessionId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (existingSession.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout session not found'
-        });
-        return;
-      }
-
-      const [updatedSession] = await db.update(workoutSessionsTable)
-        .set({
-          ...updateData,
-          updatedAt: new Date()
-        })
-        .where(eq(workoutSessionsTable.id, sessionId))
-        .returning();
-
-      logger.info(`User ${userId} updated workout session: ${sessionId}`);
+      const updatedSession = await workoutService.updateWorkoutSession(userId, sessionId, updateData);
 
       res.status(200).json({
         success: true,
@@ -190,7 +104,13 @@ export class WorkoutController {
         data: updatedSession
       });
     } catch (error) {
-      logger.error('Error updating workout session:', error);
+      if (error instanceof Error && error.message === 'Workout session not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout session not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to update workout session',
@@ -205,32 +125,7 @@ export class WorkoutController {
       const sessionId = parseInt(req.params.id);
       const { notes } = req.body;
 
-      // Verify ownership
-      const existingSession = await db.select()
-        .from(workoutSessionsTable)
-        .where(and(
-          eq(workoutSessionsTable.id, sessionId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (existingSession.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout session not found'
-        });
-        return;
-      }
-
-      const [completedSession] = await db.update(workoutSessionsTable)
-        .set({
-          completedAt: new Date(),
-          notes: notes || existingSession[0].notes
-        })
-        .where(eq(workoutSessionsTable.id, sessionId))
-        .returning();
-
-      logger.info(`User ${userId} completed workout session: ${sessionId}`);
+      const completedSession = await workoutService.completeWorkoutSession(userId, sessionId, notes);
 
       res.status(200).json({
         success: true,
@@ -238,7 +133,13 @@ export class WorkoutController {
         data: completedSession
       });
     } catch (error) {
-      logger.error('Error completing workout session:', error);
+      if (error instanceof Error && error.message === 'Workout session not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout session not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to complete workout session',
@@ -252,34 +153,20 @@ export class WorkoutController {
       const userId = req.user!.id;
       const sessionId = parseInt(req.params.id);
 
-      // Verify ownership
-      const existingSession = await db.select()
-        .from(workoutSessionsTable)
-        .where(and(
-          eq(workoutSessionsTable.id, sessionId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (existingSession.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout session not found'
-        });
-        return;
-      }
-
-      await db.delete(workoutSessionsTable)
-        .where(eq(workoutSessionsTable.id, sessionId));
-
-      logger.info(`User ${userId} deleted workout session: ${sessionId}`);
+      await workoutService.deleteWorkoutSession(userId, sessionId);
 
       res.status(200).json({
         success: true,
         message: 'Workout session deleted successfully'
       });
     } catch (error) {
-      logger.error('Error deleting workout session:', error);
+      if (error instanceof Error && error.message === 'Workout session not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout session not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to delete workout session',
@@ -296,48 +183,13 @@ export class WorkoutController {
       const workoutSessionId = parseInt(req.params.workoutSessionId);
       const { exerciseId, order, restTimeSeconds, notes } = req.body;
 
-      // Verify session ownership
-      const session = await db.select()
-        .from(workoutSessionsTable)
-        .where(and(
-          eq(workoutSessionsTable.id, workoutSessionId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (session.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout session not found'
-        });
-        return;
-      }
-
-      // Verify exercise exists
-      const exercise = await db.select()
-        .from(exercisesTable)
-        .where(eq(exercisesTable.id, exerciseId))
-        .limit(1);
-
-      if (exercise.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Exercise not found'
-        });
-        return;
-      }
-
-      const [newWorkoutExercise] = await db.insert(workoutExercisesTable)
-        .values({
-          workoutSessionId,
-          exerciseId,
-          order,
-          restTimeSeconds,
-          notes
-        })
-        .returning();
-
-      logger.info(`User ${userId} added exercise ${exerciseId} to workout session ${workoutSessionId}`);
+      const newWorkoutExercise = await workoutService.addExerciseToWorkout(userId, {
+        workoutSessionId,
+        exerciseId,
+        order,
+        restTimeSeconds,
+        notes
+      });
 
       res.status(201).json({
         success: true,
@@ -345,7 +197,13 @@ export class WorkoutController {
         data: newWorkoutExercise
       });
     } catch (error) {
-      logger.error('Error adding exercise to workout:', error);
+      if (error instanceof Error && (error.message === 'Workout session not found' || error.message === 'Exercise not found')) {
+        res.status(404).json({
+          success: false,
+          message: error.message
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to add exercise to workout',
@@ -360,33 +218,7 @@ export class WorkoutController {
       const workoutExerciseId = parseInt(req.params.id);
       const updateData = req.body;
 
-      // Verify ownership through session
-      const workoutExercise = await db.select({
-        workoutExercise: workoutExercisesTable,
-        session: workoutSessionsTable
-      })
-        .from(workoutExercisesTable)
-        .innerJoin(workoutSessionsTable, eq(workoutExercisesTable.workoutSessionId, workoutSessionsTable.id))
-        .where(and(
-          eq(workoutExercisesTable.id, workoutExerciseId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (workoutExercise.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout exercise not found'
-        });
-        return;
-      }
-
-      const [updatedWorkoutExercise] = await db.update(workoutExercisesTable)
-        .set(updateData)
-        .where(eq(workoutExercisesTable.id, workoutExerciseId))
-        .returning();
-
-      logger.info(`User ${userId} updated workout exercise: ${workoutExerciseId}`);
+      const updatedWorkoutExercise = await workoutService.updateWorkoutExercise(userId, workoutExerciseId, updateData);
 
       res.status(200).json({
         success: true,
@@ -394,7 +226,13 @@ export class WorkoutController {
         data: updatedWorkoutExercise
       });
     } catch (error) {
-      logger.error('Error updating workout exercise:', error);
+      if (error instanceof Error && error.message === 'Workout exercise not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout exercise not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to update workout exercise',
@@ -408,38 +246,20 @@ export class WorkoutController {
       const userId = req.user!.id;
       const workoutExerciseId = parseInt(req.params.id);
 
-      // Verify ownership through session
-      const workoutExercise = await db.select({
-        workoutExercise: workoutExercisesTable,
-        session: workoutSessionsTable
-      })
-        .from(workoutExercisesTable)
-        .innerJoin(workoutSessionsTable, eq(workoutExercisesTable.workoutSessionId, workoutSessionsTable.id))
-        .where(and(
-          eq(workoutExercisesTable.id, workoutExerciseId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (workoutExercise.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout exercise not found'
-        });
-        return;
-      }
-
-      await db.delete(workoutExercisesTable)
-        .where(eq(workoutExercisesTable.id, workoutExerciseId));
-
-      logger.info(`User ${userId} removed exercise from workout: ${workoutExerciseId}`);
+      await workoutService.removeExerciseFromWorkout(userId, workoutExerciseId);
 
       res.status(200).json({
         success: true,
         message: 'Exercise removed from workout successfully'
       });
     } catch (error) {
-      logger.error('Error removing exercise from workout:', error);
+      if (error instanceof Error && error.message === 'Workout exercise not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout exercise not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to remove exercise from workout',
@@ -456,39 +276,14 @@ export class WorkoutController {
       const workoutExerciseId = parseInt(req.params.workoutExerciseId);
       const { setNumber, reps, weight, restTimeSeconds, notes } = req.body;
 
-      // Verify ownership through session
-      const workoutExercise = await db.select({
-        workoutExercise: workoutExercisesTable,
-        session: workoutSessionsTable
-      })
-        .from(workoutExercisesTable)
-        .innerJoin(workoutSessionsTable, eq(workoutExercisesTable.workoutSessionId, workoutSessionsTable.id))
-        .where(and(
-          eq(workoutExercisesTable.id, workoutExerciseId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (workoutExercise.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Workout exercise not found'
-        });
-        return;
-      }
-
-      const [newSet] = await db.insert(exerciseSetsTable)
-        .values({
-          workoutExerciseId,
-          setNumber,
-          reps,
-          weight,
-          restTimeSeconds,
-          notes
-        })
-        .returning();
-
-      logger.info(`User ${userId} added set ${setNumber} to exercise ${workoutExerciseId}`);
+      const newSet = await workoutService.addSetToExercise(userId, workoutExerciseId, {
+        workoutExerciseId,
+        setNumber,
+        reps,
+        weight,
+        restTimeSeconds,
+        notes
+      });
 
       res.status(201).json({
         success: true,
@@ -496,7 +291,13 @@ export class WorkoutController {
         data: newSet
       });
     } catch (error) {
-      logger.error('Error adding set to exercise:', error);
+      if (error instanceof Error && error.message === 'Workout exercise not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Workout exercise not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to add set to exercise',
@@ -511,35 +312,7 @@ export class WorkoutController {
       const setId = parseInt(req.params.id);
       const updateData = req.body;
 
-      // Verify ownership through session
-      const exerciseSet = await db.select({
-        set: exerciseSetsTable,
-        workoutExercise: workoutExercisesTable,
-        session: workoutSessionsTable
-      })
-        .from(exerciseSetsTable)
-        .innerJoin(workoutExercisesTable, eq(exerciseSetsTable.workoutExerciseId, workoutExercisesTable.id))
-        .innerJoin(workoutSessionsTable, eq(workoutExercisesTable.workoutSessionId, workoutSessionsTable.id))
-        .where(and(
-          eq(exerciseSetsTable.id, setId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (exerciseSet.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Exercise set not found'
-        });
-        return;
-      }
-
-      const [updatedSet] = await db.update(exerciseSetsTable)
-        .set(updateData)
-        .where(eq(exerciseSetsTable.id, setId))
-        .returning();
-
-      logger.info(`User ${userId} updated exercise set: ${setId}`);
+      const updatedSet = await workoutService.updateExerciseSet(userId, setId, updateData);
 
       res.status(200).json({
         success: true,
@@ -547,7 +320,13 @@ export class WorkoutController {
         data: updatedSet
       });
     } catch (error) {
-      logger.error('Error updating exercise set:', error);
+      if (error instanceof Error && error.message === 'Exercise set not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Exercise set not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to update exercise set',
@@ -561,40 +340,20 @@ export class WorkoutController {
       const userId = req.user!.id;
       const setId = parseInt(req.params.id);
 
-      // Verify ownership through session
-      const exerciseSet = await db.select({
-        set: exerciseSetsTable,
-        workoutExercise: workoutExercisesTable,
-        session: workoutSessionsTable
-      })
-        .from(exerciseSetsTable)
-        .innerJoin(workoutExercisesTable, eq(exerciseSetsTable.workoutExerciseId, workoutExercisesTable.id))
-        .innerJoin(workoutSessionsTable, eq(workoutExercisesTable.workoutSessionId, workoutSessionsTable.id))
-        .where(and(
-          eq(exerciseSetsTable.id, setId),
-          eq(workoutSessionsTable.userId, userId)
-        ))
-        .limit(1);
-
-      if (exerciseSet.length === 0) {
-        res.status(404).json({
-          success: false,
-          message: 'Exercise set not found'
-        });
-        return;
-      }
-
-      await db.delete(exerciseSetsTable)
-        .where(eq(exerciseSetsTable.id, setId));
-
-      logger.info(`User ${userId} deleted exercise set: ${setId}`);
+      await workoutService.deleteExerciseSet(userId, setId);
 
       res.status(200).json({
         success: true,
         message: 'Exercise set deleted successfully'
       });
     } catch (error) {
-      logger.error('Error deleting exercise set:', error);
+      if (error instanceof Error && error.message === 'Exercise set not found') {
+        res.status(404).json({
+          success: false,
+          message: 'Exercise set not found'
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Failed to delete exercise set',
@@ -607,11 +366,7 @@ export class WorkoutController {
 
   async getAllExercises(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const exercises = await db.select()
-        .from(exercisesTable)
-        .orderBy(asc(exercisesTable.name));
-
-      logger.info(`User ${req.user!.id} retrieved exercise catalog`);
+      const exercises = await workoutService.getAllExercises();
 
       res.status(200).json({
         success: true,
@@ -619,7 +374,6 @@ export class WorkoutController {
         data: exercises
       });
     } catch (error) {
-      logger.error('Error retrieving exercises:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve exercises',
@@ -632,28 +386,21 @@ export class WorkoutController {
     try {
       const exerciseId = parseInt(req.params.id);
 
-      const exercise = await db.select()
-        .from(exercisesTable)
-        .where(eq(exercisesTable.id, exerciseId))
-        .limit(1);
+      const exercise = await workoutService.getExerciseById(exerciseId);
 
-      if (exercise.length === 0) {
+      res.status(200).json({
+        success: true,
+        message: 'Exercise retrieved successfully',
+        data: exercise
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Exercise not found') {
         res.status(404).json({
           success: false,
           message: 'Exercise not found'
         });
         return;
       }
-
-      logger.info(`User ${req.user!.id} retrieved exercise: ${exerciseId}`);
-
-      res.status(200).json({
-        success: true,
-        message: 'Exercise retrieved successfully',
-        data: exercise[0]
-      });
-    } catch (error) {
-      logger.error('Error retrieving exercise:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve exercise',

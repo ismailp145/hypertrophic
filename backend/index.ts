@@ -58,7 +58,11 @@ app.use('/api/auth', authRoutes);
 
 // Protected routes (auth required)
 app.use('/api/users', verifyToken, userRoutes);
-app.use('/api/workouts', verifyToken, workoutRoutes);
+// app.use('/api/workouts', verifyToken, workoutRoutes);
+
+// This is for development purposes only
+app.use('/api/workouts', workoutRoutes);
+
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

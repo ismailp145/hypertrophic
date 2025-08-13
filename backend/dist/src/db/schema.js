@@ -1,21 +1,18 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.exerciseSetsRelations = exports.workoutExercisesRelations = exports.exercisesRelations = exports.workoutSessionsRelations = exports.usersRelations = exports.exerciseSetsTable = exports.workoutExercisesTable = exports.exercisesTable = exports.workoutSessionsTable = exports.usersTable = void 0;
-const pg_core_1 = require("drizzle-orm/pg-core");
-const drizzle_orm_1 = require("drizzle-orm");
-exports.usersTable = (0, pg_core_1.pgTable)("users", {
-    id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
-    name: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
-    age: (0, pg_core_1.integer)(),
-    email: (0, pg_core_1.varchar)({ length: 255 }).notNull().unique(),
-    password: (0, pg_core_1.varchar)({ length: 255 }).notNull(),
-    height: (0, pg_core_1.decimal)({ precision: 5, scale: 2 }),
-    weight: (0, pg_core_1.decimal)({ precision: 5, scale: 2 }),
-    gender: (0, pg_core_1.varchar)({ length: 10 }),
-    activityLevel: (0, pg_core_1.varchar)({ length: 20 }),
-    goal: (0, pg_core_1.varchar)({ length: 20 }),
-    createdAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
+import { integer, pgTable, varchar, timestamp, text, decimal } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+export const usersTable = pgTable("users", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 255 }).notNull(),
+    age: integer(),
+    email: varchar({ length: 255 }).notNull().unique(),
+    password: varchar({ length: 255 }).notNull(),
+    height: decimal({ precision: 5, scale: 2 }),
+    weight: decimal({ precision: 5, scale: 2 }),
+    gender: varchar({ length: 10 }),
+    activityLevel: varchar({ length: 20 }),
+    goal: varchar({ length: 20 }),
+    createdAt: timestamp().notNull().defaultNow(),
+    updatedAt: timestamp().notNull().defaultNow(),
 });
 // Workout sessions (e.g., "Monday Chest Day", "Tuesday Leg Day")
 // CREATE TABLE workout_sessions (
@@ -29,14 +26,14 @@ exports.usersTable = (0, pg_core_1.pgTable)("users", {
 //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 //     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 // );
-exports.workoutSessionsTable = (0, pg_core_1.pgTable)("workout_sessions", {
-    id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
-    userId: (0, pg_core_1.integer)().notNull().references(() => exports.usersTable.id),
-    name: (0, pg_core_1.varchar)({ length: 255 }).notNull(), // e.g., "Chest Day", "Leg Day"
-    startedAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
-    completedAt: (0, pg_core_1.timestamp)(),
-    notes: (0, pg_core_1.text)(),
-    createdAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
+export const workoutSessionsTable = pgTable("workout_sessions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer().notNull().references(() => usersTable.id),
+    name: varchar({ length: 255 }).notNull(), // e.g., "Chest Day", "Leg Day"
+    startedAt: timestamp().notNull().defaultNow(),
+    completedAt: timestamp(),
+    notes: text(),
+    createdAt: timestamp().notNull().defaultNow(),
 });
 // Individual exercises within a workout session
 // CREATE TABLE exercises (
@@ -48,16 +45,16 @@ exports.workoutSessionsTable = (0, pg_core_1.pgTable)("workout_sessions", {
 //     instructions TEXT,
 //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 // );
-exports.exercisesTable = (0, pg_core_1.pgTable)("exercises", {
-    id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
+export const exercisesTable = pgTable("exercises", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
     // workoutSessionId: integer().notNull().references(() => workoutSessionsTable.id),
-    name: (0, pg_core_1.varchar)({ length: 255 }).notNull(), // e.g., "Bench Press", "Squats"
-    category: (0, pg_core_1.varchar)({ length: 100 }), // e.g., "Push", "Pull", "Legs", "Core", "Upper Body", "Lower Body"
-    muscleGroup: (0, pg_core_1.varchar)({ length: 50 }), // e.g., "Chest", "Back", "Legs",
-    equipment: (0, pg_core_1.varchar)({ length: 255 }), // e.g., "Barbell", "Dumbbell", "Machine", "Bodyweight", "Other"
-    order: (0, pg_core_1.integer)().notNull(), // To maintain exercise order within the session
-    notes: (0, pg_core_1.text)(),
-    createdAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
+    name: varchar({ length: 255 }).notNull(), // e.g., "Bench Press", "Squats"
+    category: varchar({ length: 100 }), // e.g., "Push", "Pull", "Legs", "Core", "Upper Body", "Lower Body"
+    muscleGroup: varchar({ length: 50 }), // e.g., "Chest", "Back", "Legs",
+    equipment: varchar({ length: 255 }), // e.g., "Barbell", "Dumbbell", "Machine", "Bodyweight", "Other"
+    order: integer().notNull(), // To maintain exercise order within the session
+    notes: text(),
+    createdAt: timestamp().notNull().defaultNow(),
 });
 // WORKOUT_EXERCISES (Junction)
 //CREATE TABLE workout_exercises (
@@ -70,14 +67,14 @@ exports.exercisesTable = (0, pg_core_1.pgTable)("exercises", {
 //     FOREIGN KEY (workout_session_id) REFERENCES workout_sessions(id) ON DELETE CASCADE,
 //     FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE RESTRICT
 // );
-exports.workoutExercisesTable = (0, pg_core_1.pgTable)("workout_exercises", {
-    id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
-    workoutSessionId: (0, pg_core_1.integer)().notNull().references(() => exports.workoutSessionsTable.id, { onDelete: "cascade" }),
-    exerciseId: (0, pg_core_1.integer)().notNull().references(() => exports.exercisesTable.id, { onDelete: "restrict" }),
-    order: (0, pg_core_1.integer)().notNull(),
-    restTimeSeconds: (0, pg_core_1.integer)(),
-    notes: (0, pg_core_1.text)(),
-    createdAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
+export const workoutExercisesTable = pgTable("workout_exercises", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    workoutSessionId: integer().notNull().references(() => workoutSessionsTable.id, { onDelete: "cascade" }),
+    exerciseId: integer().notNull().references(() => exercisesTable.id, { onDelete: "restrict" }),
+    order: integer().notNull(),
+    restTimeSeconds: integer(),
+    notes: text(),
+    createdAt: timestamp().notNull().defaultNow(),
 });
 // Sets for each exercise
 // CREATE TABLE exercise_sets (
@@ -93,50 +90,50 @@ exports.workoutExercisesTable = (0, pg_core_1.pgTable)("workout_exercises", {
 //     notes TEXT,
 //     FOREIGN KEY (workout_exercise_id) REFERENCES workout_exercises(id) ON DELETE CASCADE
 // );
-exports.exerciseSetsTable = (0, pg_core_1.pgTable)("exercise_sets", {
-    id: (0, pg_core_1.integer)().primaryKey().generatedAlwaysAsIdentity(),
-    workoutExerciseId: (0, pg_core_1.integer)().notNull().references(() => exports.workoutExercisesTable.id),
-    setNumber: (0, pg_core_1.integer)().notNull(), // 1, 2, 3, etc.
-    reps: (0, pg_core_1.integer)().notNull(),
-    weight: (0, pg_core_1.decimal)({ precision: 6, scale: 2 }).notNull(), // e.g., 135.50 lbs
-    restTimeSeconds: (0, pg_core_1.integer)(), // Time between this set and the next
-    completedAt: (0, pg_core_1.timestamp)(),
-    notes: (0, pg_core_1.text)(),
-    createdAt: (0, pg_core_1.timestamp)().notNull().defaultNow(),
+export const exerciseSetsTable = pgTable("exercise_sets", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    workoutExerciseId: integer().notNull().references(() => workoutExercisesTable.id),
+    setNumber: integer().notNull(), // 1, 2, 3, etc.
+    reps: integer().notNull(),
+    weight: decimal({ precision: 6, scale: 2 }).notNull(), // e.g., 135.50 lbs
+    restTimeSeconds: integer(), // Time between this set and the next
+    completedAt: timestamp(),
+    notes: text(),
+    createdAt: timestamp().notNull().defaultNow(),
 });
 // ✅ CORRECT RELATIONS
-exports.usersRelations = (0, drizzle_orm_1.relations)(exports.usersTable, ({ many }) => ({
-    workoutSessions: many(exports.workoutSessionsTable),
+export const usersRelations = relations(usersTable, ({ many }) => ({
+    workoutSessions: many(workoutSessionsTable),
 }));
-exports.workoutSessionsRelations = (0, drizzle_orm_1.relations)(exports.workoutSessionsTable, ({ one, many }) => ({
-    user: one(exports.usersTable, {
-        fields: [exports.workoutSessionsTable.userId],
-        references: [exports.usersTable.id],
+export const workoutSessionsRelations = relations(workoutSessionsTable, ({ one, many }) => ({
+    user: one(usersTable, {
+        fields: [workoutSessionsTable.userId],
+        references: [usersTable.id],
     }),
     // ✅ Fixed: Use junction table instead of direct exercises reference
-    workoutExercises: many(exports.workoutExercisesTable),
+    workoutExercises: many(workoutExercisesTable),
 }));
 // ✅ Fixed: Master exercise catalog only relates through junction table
-exports.exercisesRelations = (0, drizzle_orm_1.relations)(exports.exercisesTable, ({ many }) => ({
-    workoutExercises: many(exports.workoutExercisesTable),
+export const exercisesRelations = relations(exercisesTable, ({ many }) => ({
+    workoutExercises: many(workoutExercisesTable),
 }));
 // ✅ Fixed: Complete junction table relations
-exports.workoutExercisesRelations = (0, drizzle_orm_1.relations)(exports.workoutExercisesTable, ({ one, many }) => ({
-    workoutSession: one(exports.workoutSessionsTable, {
-        fields: [exports.workoutExercisesTable.workoutSessionId],
-        references: [exports.workoutSessionsTable.id],
+export const workoutExercisesRelations = relations(workoutExercisesTable, ({ one, many }) => ({
+    workoutSession: one(workoutSessionsTable, {
+        fields: [workoutExercisesTable.workoutSessionId],
+        references: [workoutSessionsTable.id],
     }),
-    exercise: one(exports.exercisesTable, {
-        fields: [exports.workoutExercisesTable.exerciseId],
-        references: [exports.exercisesTable.id],
+    exercise: one(exercisesTable, {
+        fields: [workoutExercisesTable.exerciseId],
+        references: [exercisesTable.id],
     }),
     // ✅ Added: Relation to exercise sets
-    sets: many(exports.exerciseSetsTable),
+    sets: many(exerciseSetsTable),
 }));
 // ✅ Fixed: Reference junction table instead of exercises directly
-exports.exerciseSetsRelations = (0, drizzle_orm_1.relations)(exports.exerciseSetsTable, ({ one }) => ({
-    workoutExercise: one(exports.workoutExercisesTable, {
-        fields: [exports.exerciseSetsTable.workoutExerciseId],
-        references: [exports.workoutExercisesTable.id],
+export const exerciseSetsRelations = relations(exerciseSetsTable, ({ one }) => ({
+    workoutExercise: one(workoutExercisesTable, {
+        fields: [exerciseSetsTable.workoutExerciseId],
+        references: [workoutExercisesTable.id],
     }),
 }));

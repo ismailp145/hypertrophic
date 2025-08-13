@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,23 +7,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getUserByEmail = exports.getUserById = exports.createUser = exports.getAllUsers = void 0;
-const user_1 = require("../models/user");
-const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield user_1.UserModel.findAll();
+import { UserModel } from '../models/user';
+export const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
+    const users = yield UserModel.findAll();
     return users;
 });
-exports.getAllUsers = getAllUsers;
 //only called from authController.ts
-const createUser = (userData) => __awaiter(void 0, void 0, void 0, function* () {
+export const createUser = (userData) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, email, age, password } = userData;
     // Check if user already exists
-    const existingUser = yield user_1.UserModel.findByEmail(email);
+    const existingUser = yield UserModel.findByEmail(email);
     if (existingUser) {
         throw new Error('User with this email already exists');
     }
-    const user = yield user_1.UserModel.create({
+    const user = yield UserModel.create({
         name,
         email,
         age: age || null, // Allow null for optional age
@@ -32,40 +28,35 @@ const createUser = (userData) => __awaiter(void 0, void 0, void 0, function* () 
     });
     return user;
 });
-exports.createUser = createUser;
-const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_1.UserModel.findById(id);
+export const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield UserModel.findById(id);
     if (!user) {
         throw new Error('User not found');
     }
     return user;
 });
-exports.getUserById = getUserById;
-const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_1.UserModel.findByEmail(email);
+export const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield UserModel.findByEmail(email);
     return user;
 });
-exports.getUserByEmail = getUserByEmail;
-const updateUser = (id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
+export const updateUser = (id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if email is being updated and if it already exists
     if (updateData.email) {
-        const existingUser = yield user_1.UserModel.findByEmail(updateData.email);
+        const existingUser = yield UserModel.findByEmail(updateData.email);
         if (existingUser && existingUser.id !== id) {
             throw new Error('Email already exists');
         }
     }
-    const user = yield user_1.UserModel.update(id, updateData);
+    const user = yield UserModel.update(id, updateData);
     if (!user) {
         throw new Error('User not found');
     }
     return user;
 });
-exports.updateUser = updateUser;
-const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_1.UserModel.delete(id);
+export const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield UserModel.delete(id);
     if (!user) {
         throw new Error('User not found');
     }
     return user;
 });
-exports.deleteUser = deleteUser;

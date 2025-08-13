@@ -1,28 +1,22 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = void 0;
 // src/utils/logger.js
-const winston_1 = __importDefault(require("winston"));
-exports.logger = winston_1.default.createLogger({
+import winston from 'winston';
+export const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
-    format: winston_1.default.format.combine(winston_1.default.format.timestamp(), winston_1.default.format.errors({ stack: true }), winston_1.default.format.json()),
+    format: winston.format.combine(winston.format.timestamp(), winston.format.errors({ stack: true }), winston.format.json()),
     defaultMeta: { service: 'api' },
     transports: [
-        new winston_1.default.transports.File({
+        new winston.transports.File({
             filename: 'logs/error.log',
             level: 'error'
         }),
-        new winston_1.default.transports.File({
+        new winston.transports.File({
             filename: 'logs/combined.log'
         })
     ]
 });
 if (process.env.NODE_ENV !== 'production') {
-    exports.logger.add(new winston_1.default.transports.Console({
-        format: winston_1.default.format.simple()
+    logger.add(new winston.transports.Console({
+        format: winston.format.simple()
     }));
 }
-exports.default = exports.logger;
+export default logger;
