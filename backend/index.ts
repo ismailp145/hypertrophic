@@ -58,11 +58,12 @@ app.use('/api/auth', authRoutes);
 
 // Protected routes (auth required)
 app.use('/api/users', verifyToken, userRoutes);
-// app.use('/api/workouts', verifyToken, workoutRoutes);
 
-// This is for development purposes only
-app.use('/api/workouts', workoutRoutes);
-
+if (process.env.NODE_ENV === 'development') {  
+  app.use('/api/workouts', workoutRoutes); // No auth in development  
+} else {  
+  app.use('/api/workouts', verifyToken, workoutRoutes); // Auth required in production  
+}  
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
