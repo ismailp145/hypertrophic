@@ -19,7 +19,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="workouts"
+        name="WorkoutPage"
         options={{
           title: 'Workouts',
           tabBarIcon: ({ color, size }) => (
@@ -28,7 +28,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="ProfilePage"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
