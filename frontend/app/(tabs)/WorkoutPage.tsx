@@ -52,6 +52,7 @@ export default function WorkoutsScreen() {
             onPress: () => {
               // Here you could navigate to the workout session detail page
               // or show a modal to add exercises
+              
             }
           }
         ]
