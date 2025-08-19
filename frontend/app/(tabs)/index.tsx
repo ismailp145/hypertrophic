@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-
+import { TokenDebugger } from '../../components/TokenDebugger';
 export default function HomeScreen() {
   const { user, logout } = useAuth();
 
@@ -22,6 +22,7 @@ export default function HomeScreen() {
       
       <View style={styles.content}>
         <Text style={styles.subtitle}>Your fitness journey starts here</Text>
+        <TokenDebugger />
         {/* Add your main app content here */}
       </View>
     </SafeAreaView>

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-
+import { TokenStorageTester } from '../../components/TokenStorageTester';
 export default function ProfileScreen() {
   const { user } = useAuth();
 
@@ -12,6 +12,7 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
         <Text style={styles.subtitle}>Welcome, {user?.name}</Text>
         <Text style={styles.email}>{user?.email}</Text>
+        <TokenStorageTester />
       </View>
     </SafeAreaView>
   );

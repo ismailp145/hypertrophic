@@ -10,15 +10,43 @@ const apiClient = axios.create({
 // Add request interceptor to include auth token
 apiClient.interceptors.request.use(
   async (config) => {
-    // Get token from secure store
+    // Get token from secure store with fallback
     try {
       const SecureStore = await import('expo-secure-store');
-      const token = await SecureStore.default.getItemAsync('auth_token');
+      let token = await SecureStore.default.getItemAsync('auth_token');
+      
+      // If no token in SecureStore, try AsyncStorage as fallback (for development)
+      if (!token) {
+        try {
+          const AsyncStorage = await import('@react-native-async-storage/async-storage');
+          token = await AsyncStorage.default.getItem('auth_token');
+          console.log('Token retrieved from AsyncStorage fallback:', token ? 'Yes' : 'No');
+        } catch (fallbackError) {
+          console.log('AsyncStorage fallback not available');
+        }
+      } else {
+        console.log('Token retrieved from SecureStore:', token ? 'Yes' : 'No');
+      }
+      
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.log('Authorization header set successfully');
+      } else {
+        console.warn('No auth token found for request');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting auth token:', error);
+      // Try AsyncStorage as last resort
+      try {
+        const AsyncStorage = await import('@react-native-async-storage/async-storage');
+        const token = await AsyncStorage.default.getItem('auth_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+          console.log('Token retrieved from AsyncStorage after error');
+        }
+      } catch (fallbackError: unknown) {
+        console.error('All storage methods failed:', fallbackError);
+      }
     }
     return config;
   },
@@ -53,6 +81,41 @@ export interface WorkoutSession {
   notes: string | null;
   createdAt: string;
 }
+
+// Debug function to check token status
+export const debugTokenStatus = async () => {
+  try {
+    console.log('🔍 Debugging token status...');
+    
+    // Check SecureStore
+    try {
+      const SecureStore = await import('expo-secure-store');
+      const secureToken = await SecureStore.default.getItemAsync('auth_token');
+      console.log('SecureStore token:', secureToken ? 'Present' : 'Missing');
+      if (secureToken) {
+        console.log('Token length:', secureToken.length);
+        console.log('Token starts with:', secureToken.substring(0, 20) + '...');
+      }
+    } catch (error: unknown) {
+      console.log('SecureStore error:', error instanceof Error ? error.message : String(error));
+    }
+    
+    // Check AsyncStorage
+    try {
+      const AsyncStorage = await import('@react-native-async-storage/async-storage');
+      const asyncToken = await AsyncStorage.default.getItem('auth_token');
+      console.log('AsyncStorage token:', asyncToken ? 'Present' : 'Missing');
+      if (asyncToken) {
+        console.log('Token length:', asyncToken.length);
+        console.log('Token starts with:', asyncToken.substring(0, 20) + '...');
+      }
+    } catch (error: unknown) {
+      console.log('AsyncStorage error:', error instanceof Error ? error.message : String(error));
+    }
+  } catch (error: unknown) {
+    console.error('Debug error:', error);
+  }
+};
 
 export const workoutService = {
   // Create a new workout session
