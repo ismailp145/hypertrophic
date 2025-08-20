@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { ENDPOINTS, API_CONFIG } from '../config/api';
-
 // Create a configured axios instance for this service
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -59,6 +58,8 @@ export const workoutService = {
   async createWorkoutSession(data: CreateWorkoutSessionData): Promise<WorkoutSession> {
     try {
       const response = await apiClient.post(ENDPOINTS.WORKOUTS.CREATE_SESSION, data);
+      console.log('request', data);
+      console.log('response.data', response.data);
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
