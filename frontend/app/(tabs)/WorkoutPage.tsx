@@ -36,7 +36,6 @@ export default function WorkoutsScreen() {
       // For now, create a simple workout session
       // In the future, you could add a modal to input name and notes
       const newSession = await workoutService.createWorkoutSession({
-        authToken: token || '',
         name: `Workout ${new Date().toLocaleDateString()}`,
         notes: 'Started a new workout session'
       });
