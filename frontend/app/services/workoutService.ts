@@ -21,8 +21,6 @@ export const workoutService = {
   async createWorkoutSession(data: CreateWorkoutSessionData): Promise<WorkoutSession> {
     try {
       const response = await axios.post(ENDPOINTS.WORKOUTS.CREATE_SESSION, data);
-      console.log('request', data);
-      console.log('response.data', response.data);
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -36,15 +34,13 @@ export const workoutService = {
   async getWorkoutSessions(limit: number = 10, offset: number = 0, completed?: boolean): Promise<WorkoutSession[]> {
     try {
       const params = new URLSearchParams();
-      if (limit) params.append('limit', limit.toString());
-      if (offset) params.append('offset', offset.toString());
+      if (limit !== undefined) params.append('limit', limit.toString());
+      if (offset !== undefined) params.append('offset', offset.toString());
       if (completed !== undefined) params.append('completed', completed.toString());
-
       const response = await axios.get(`${ENDPOINTS.WORKOUTS.SESSIONS}?${params.toString()}`);
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log('error', error);
         throw new Error(error.response?.data?.message || 'Failed to fetch workout sessions');
       }
       throw new Error('Failed to fetch workout sessions');

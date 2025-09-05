@@ -41,9 +41,9 @@ export const getWorkoutSessions = async (userId: number, limit: number = 10, off
   
   if (completed !== undefined) {
     if (completed) {
-      whereClause = and(whereClause, isNull(workoutSessionsTable.completedAt))!;
-    } else {
       whereClause = and(whereClause, isNotNull(workoutSessionsTable.completedAt))!;
+    } else {
+      whereClause = and(whereClause, isNull(workoutSessionsTable.completedAt))!;
     }
   }
 
