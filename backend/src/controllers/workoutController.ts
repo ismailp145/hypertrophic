@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import * as workoutService from '../services/workoutService';
 import { 
@@ -10,3 +10,5 @@ import {
   UpdateExerciseSetData
 } from '../types/Workout';
 
+export const createWorkoutSession = async (req: Request, res:Response) => {
+}
