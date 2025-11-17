@@ -16,7 +16,6 @@ export interface BaseExercise {
   category: string | null;
   muscleGroup: string | null;
   equipment: string | null;
-  order: number;
   notes: string | null;
   createdAt: Date;
 }
@@ -25,7 +24,6 @@ export interface BaseWorkoutExercise {
   id: number;
   workoutSessionId: number;
   exerciseId: number;
-  order: number;
   restTimeSeconds: number | null;
   notes: string | null;
   createdAt: Date;
@@ -61,7 +59,6 @@ export interface CreateExerciseData {
   category?: string;
   muscleGroup?: string;
   equipment?: string;
-  order: number;
   notes?: string;
 }
 
@@ -70,14 +67,12 @@ export interface UpdateExerciseData {
   category?: string;
   muscleGroup?: string;
   equipment?: string;
-  order?: number;
   notes?: string;
 }
 
 export interface CreateWorkoutExerciseData {
   workoutSessionId: number;
   exerciseId: number;
-  order: number;
   restTimeSeconds?: number;
   notes?: string;
 }
@@ -85,13 +80,11 @@ export interface CreateWorkoutExerciseData {
 export interface AddExerciseToWorkoutData {
   workoutSessionId: number;
   exerciseId: number;
-  order: number;
   restTimeSeconds?: number;
   notes?: string;
 }
 
 export interface UpdateWorkoutExerciseData {
-  order?: number;
   restTimeSeconds?: number;
   notes?: string;
 }
@@ -145,7 +138,6 @@ export interface WorkoutSessionWithExercises extends BaseWorkoutSession {
     id: number;
     workoutSessionId: number;
     exerciseId: number;
-    order: number;
     restTimeSeconds: number | null;
     notes: string | null;
     createdAt: Date;
