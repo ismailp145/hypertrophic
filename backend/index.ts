@@ -15,7 +15,7 @@ const db = drizzle(process.env.DATABASE_URL!);
 dotenv.config();
 
 const app: Express = express();
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 
 // CORS configuration
 const corsOptions = {
@@ -74,7 +74,9 @@ function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
   next(); 
 }
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Start server - listen on 0.0.0.0 to allow connections from other devices
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Server accessible at http://localhost:${PORT}`);
+  console.log(`Server accessible on network at http://10.0.0.74:${PORT}`);
 });
