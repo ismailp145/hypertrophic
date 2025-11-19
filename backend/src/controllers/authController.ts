@@ -56,6 +56,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 // Login user
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  console.log('Login request received:', { email, password });
 
   // Zod validation is handled by middleware, so we can trust the data here
 

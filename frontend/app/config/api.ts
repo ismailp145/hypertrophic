@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
   // For development - change this to your computer's IP address if testing on device
-  // BASE_URL: 'http://localhost:8080/api',
+  BASE_URL: 'http://localhost:8080/api',
   
   // For testing on physical device, use your computer's IP:
-  BASE_URL: 'http://10.0.0.74:8080/api',
+  // BASE_URL: 'http://10.0.0.74:8080/api',
   
   // For production, use your deployed backend URL
   // BASE_URL: 'https://your-backend-url.com/api',
@@ -17,7 +17,7 @@ export const getLocalIP = () => {
   // You can find your IP by running: ifconfig | grep "inet " | grep -v 127.0.0.1
   // On macOS/Linux: ifconfig | grep "inet " | grep -v 127.0.0.1
   // On Windows: ipconfig | findstr "IPv4"
-  return '10.0.0.74'; // Your actual IP address
+  return 'localhost'; // Your actual IP address
 };
 
 export const ENDPOINTS = {
