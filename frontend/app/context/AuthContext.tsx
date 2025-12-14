@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 
@@ -69,10 +70,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const storeToken = async (token: string) => {
     try {
+      // Try SecureStore first
       await SecureStore.setItemAsync('auth_token', token);
       setToken(token);
     } catch (error) {
-      console.error('Error storing token:', error);
+      console.warn('SecureStore failed, using AsyncStorage fallback:', error);
+      // Fallback to AsyncStorage for development
+      try {
+        await AsyncStorage.setItem('auth_token', token);
+        setToken(token);
+      } catch (fallbackError) {
+        console.error('Both storage methods failed:', fallbackError);
+      }
     }
   };
 
@@ -80,8 +89,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       return await SecureStore.getItemAsync('auth_token');
     } catch (error) {
-      console.error('Error getting stored token:', error);
-      return null;
+      console.warn('SecureStore failed, trying AsyncStorage fallback:', error);
+      try {
+        return await AsyncStorage.getItem('auth_token');
+      } catch (fallbackError) {
+        console.error('Both storage methods failed:', fallbackError);
+        return null;
+      }
     }
   };
 
@@ -90,13 +104,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await SecureStore.deleteItemAsync('auth_token');
       setToken(null);
     } catch (error) {
-      console.error('Error removing token:', error);
+      console.warn('SecureStore failed, using AsyncStorage fallback:', error);
+      // Fallback to AsyncStorage for development
+      try {
+        await AsyncStorage.removeItem('auth_token');
+        setToken(null);
+      } catch (fallbackError) {
+        console.error('Both storage methods failed:', fallbackError);
+        // Still set token to null even if storage fails
+        setToken(null);
+      }
     }
   };
 
   const checkAuthStatus = async () => {
     try {
-      const storedToken = await getStoredToken();
+      let storedToken = await getStoredToken();
+      
+      if (!storedToken) {
+        // Try fallback storage
+        try {
+          storedToken = await AsyncStorage.getItem('auth_token');
+        } catch (fallbackError) {
+          console.warn('AsyncStorage fallback also failed:', fallbackError);
+        }
+      }
+      
       if (storedToken) {
         // Verify token by calling profile endpoint with explicit Authorization header
         // This avoids the race condition with the axios interceptor
